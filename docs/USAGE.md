@@ -1,77 +1,67 @@
-# 分步运行与常见问题
+# Run guide
 
-以下命令在代码根目录执行，使用 Windows 虚拟环境中的 Python。macOS / Linux 将 `.venv\Scripts\python.exe` 替换为 `.venv/bin/python`。
+Run commands from the repository root. On macOS / Linux, replace `.venv\Scripts\python.exe` with `.venv/bin/python`.
 
-## 单独运行某一步
+## Commands
 
-完整运行：
+Full run:
 
 ```powershell
 .venv\Scripts\python.exe run.py
 ```
 
-只测量：
+Run one step:
 
 ```powershell
 .venv\Scripts\python.exe run.py --step measure
-```
-
-修改绘图样式后，只重新画图：
-
-```powershell
 .venv\Scripts\python.exe run.py --step plot
-```
-
-最后重新打包：
-
-```powershell
 .venv\Scripts\python.exe run.py --step package
 ```
 
-详细参数：`.venv\Scripts\python.exe run.py --help`。
+After editing plot styles, rerun `plot`, then `package`. For options, use `.venv\Scripts\python.exe run.py --help`.
 
-## 常见问题
+## Common questions
 
-**找不到图片或 `data/` 目录。**
+**Missing images or `data/`?**
 
-确认四个数据 ZIP 全部解压，并且 `data/statue/` 与 `run.py` 位于同一代码目录下。不要让路径多套一层 `image-utility-lab-main/`。
+Extract all four data ZIPs. The `data/` folder must sit beside `run.py`, with `statue/` inside it. Avoid an extra nested `image-utility-lab-main/` folder.
 
-**内存占用较高。**
+**High memory use?**
 
-默认同时处理两张图片，可以改成一次一张：
+The default is two images at a time. Use one:
 
 ```powershell
 .venv\Scripts\python.exe run.py --workers 1
 ```
 
-**运行中断了。**
+**Interrupted run?**
 
-重新执行相同命令。测量程序会复用已完成且通过数据、代码、设置校验的结果。完成前不要修改输入图片或指标定义。
+Rerun the same command. Completed results are reused after data, code, and settings checks. Keep inputs and metric definitions unchanged during the run.
 
-**想先试 3 张。**
+**Try three images first?**
 
 ```powershell
 .venv\Scripts\python.exe run.py --limit-images 3
 ```
 
-试跑保存到 `results/check3/`。正式提交需再执行 `.venv\Scripts\python.exe run.py`，生成完整的 `results/draw0_submission.zip`。
+This saves to `results/check3/`. Then run the full command to create `results/draw0_submission.zip`.
 
-**如何检查代码？**
+**Run code checks?**
 
 ```powershell
 .venv\Scripts\python.exe -m unittest discover -s tests -v
 ```
 
-**如何检查下载是否完整？**
+**Verify a download?**
 
-数据 Release 中的 `SHA256SUMS.txt` 给出了四个 ZIP 的校验值。Windows 可以运行：
+Compare each ZIP's SHA256 hash with `SHA256SUMS.txt` in the data release. On Windows:
 
 ```powershell
 Get-FileHash im2gps200_base.zip -Algorithm SHA256
 ```
 
-与文本中的对应值比较。测量程序也会逐个核验图片与 mask 的哈希。
+The measurement code also checks every image and mask hash.
 
-**图画出来了，只交截图可以吗？**
+**Send screenshots only?**
 
-请提交完整的 `results/draw0_submission.zip`。导师需要原始 CSV/JSONL 数值进行后续分析，截图不包含完整信息。
+Send the full `results/draw0_submission.zip` to **Kerwinxxp (the project owner)**. The raw CSV/JSONL values are needed for analysis.

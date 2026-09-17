@@ -1,51 +1,47 @@
-# 指标怎么算？
+# Utility metrics
 
-每次比较一对图片：**原图**和它对应的**加噪图**。mask 标记了加噪区域；白色属于区域内部，黑色属于外部。
+Compare each noisy image with its original. The mask marks the protected area: white is inside, black is outside.
 
-## MSE：像素数值变化了多少
+## MSE: pixel differences
 
-MSE（Mean Squared Error，均方误差）计算对应 RGB 数值之差的平方，再取平均。
+Mean Squared Error (MSE) averages squared RGB differences. Lower is better; identical images have MSE = 0.
 
-例如某个通道从 100 变成 120，这一项对 MSE 的贡献是 `(120 / 255 - 100 / 255) ** 2`。两张图片完全相同时，MSE 为 0。数值越大，像素差异越大。
+For a channel that changes from 100 to 120, the squared difference is `(120 / 255 - 100 / 255) ** 2`.
 
-- **整图 MSE**：对整张图片的所有像素、三个通道取平均。
-- **区域 MSE**：只对 mask 内的像素、三个通道取平均。
+- **Whole-image MSE:** average over all pixels and RGB channels.
+- **Masked-area MSE:** average only over masked pixels and RGB channels.
 
-先转成 `float64` 并除以 255，再相减。不能直接用 `uint8` 相减，否则可能发生整数回绕。
+Convert to `float64` and divide by 255 before subtraction. Subtracting `uint8` values can cause integer wraparound.
 
-## SSIM：局部结构有多相似
+## SSIM: local structure
 
-SSIM（Structural Similarity Index，结构相似性）比较局部窗口内的亮度、对比度和结构。原图与自身比较时为 1，通常数值越高表示越相似。
+The Structural Similarity Index (SSIM) compares local brightness, contrast, and structure. Higher usually means more similar; identical images have SSIM = 1.
 
-- **整图 SSIM**：将各有效窗口中心的 SSIM 值取平均。
-- **区域 SSIM**：使用同一张 SSIM 分数图，只对位于 mask 内的有效窗口中心取平均。
+- **Whole-image SSIM:** average over all valid window centers.
+- **Masked-area SSIM:** use the same SSIM map, averaging only valid centers inside the mask.
 
-区域 SSIM 的窗口可能覆盖 mask 外的上下文。它不是将背景填黑后的 SSIM，也不是裁剪后缩放图片的 SSIM。保留可能出现的负值，不要截断为 0。
+Windows centered inside the mask may include surrounding pixels. Do not black out the background or resize a crop. Keep negative SSIM values.
 
-## 固定设置
+## Fixed settings
 
-| 设置 | 值 |
+| Setting | Value |
 |---|---|
-| 图片 | 原始分辨率，RGB，不缩放、不重新编码 |
-| 数值 | `float64`，RGB 除以 255，`data_range=1` |
-| SSIM 窗口 | 11 × 11，高斯权重，sigma = 1.5 |
-| 协方差 | 总体协方差：`use_sample_covariance=False` |
-| RGB 合并 | 三个通道的算术平均 |
-| 有效中心 | 排除图片外缘 5 个像素 |
-| 跨图片汇总 | 每张图片权重相同 |
+| Images | Native resolution, RGB; no resizing or re-encoding |
+| Values | `float64`, RGB divided by 255, `data_range=1` |
+| SSIM window | 11 × 11, Gaussian weights, sigma = 1.5 |
+| Covariance | Population: `use_sample_covariance=False` |
+| RGB reduction | Arithmetic mean across three channels |
+| Valid centers | Exclude the outer 5 pixels |
+| Dataset summary | Equal weight per image |
 
-精确设置见 [`config/metric_settings.json`](../config/metric_settings.json)，实现见 [`src/utility_lib.py`](../src/utility_lib.py)。
+See [settings](../config/metric_settings.json) and [implementation](../src/utility_lib.py).
 
-## 为什么同时测整图和区域？
+Keep all four metrics separate. Whole-image scores include unchanged areas; masked-area scores focus on the protected region. These measure visual fidelity, not location accuracy or privacy leakage.
 
-图片的大部分区域保持不变时，整图分数可能显得很好。区域指标能单独反映被加噪部分的变化。因此，四条指标都保留，不把它们混成一个分数。
+## Data and repeats
 
-这些指标衡量视觉保真度，不直接衡量定位准确率或隐私泄露。
+Use the saved default `draw_index=0`. This identifies the first historical repeat; it does not mean every image was generated with integer seed 0.
 
-## 数据与随机重复
+Each image has 11 records: one original-image self-check and five ε values for each of two methods. The full run has **200 images and 2,200 rows**. Larger ε means weaker noise. Plot the measured values.
 
-每张图片都使用已保存的默认 `draw_index=0`。这里的 0 是历史实验中第一次重复的编号，不代表所有图片都用整数随机种子 0 重新生成。
-
-每张图有 11 个测量记录：1 张原图自检，以及两种方法各 5 档 ε。200 张图共 2,200 行。较大的 ε 对应较弱的加噪，曲线记录实际测量结果。
-
-输入文件和 SHA256 位于 [`config/im2gps200_draw0.jsonl`](../config/im2gps200_draw0.jsonl)。图片均与对应的原图比较。
+The [manifest](../config/im2gps200_draw0.jsonl) lists inputs and SHA256 hashes.

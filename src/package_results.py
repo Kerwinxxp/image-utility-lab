@@ -1,4 +1,4 @@
-"""Package raw utility measurements and figures for return to the supervisor."""
+"""Package raw measurements and figures for Kerwinxxp, the project owner."""
 from __future__ import annotations
 
 import argparse
@@ -69,7 +69,7 @@ def main(argv=None):
         if archive.testzip() is not None:
             raise ValueError('Submission ZIP failed integrity check')
     temporary.replace(output)
-    print(f'Send this file to your supervisor: {output}')
+    print(f'Send this file to Kerwinxxp (project owner): {output}')
 
 
 if __name__ == '__main__':

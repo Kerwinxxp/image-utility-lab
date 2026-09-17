@@ -1,28 +1,28 @@
-# 学生任务与提交检查
+# Your task
 
-目标是独立完成 **200 张图片的 utility 测量和绘图**。导师负责后续分析。
+Measure utility for **200 images** and plot utility–ε curves. Kerwinxxp (the project owner) will analyze the results.
 
-## 需要完成
+## Steps
 
-1. 下载代码和全部数据，安装依赖。
-2. 阅读[指标说明](METRICS.md)，理解原图、加噪图与 mask 的对应关系。
-3. 按首页命令运行 `.venv\Scripts\python.exe run.py`，完成全部 200 张图；macOS / Linux 使用 `.venv/bin/python run.py`。
-4. 检查四项 utility 指标的曲线，确认方法、ε 和坐标轴标注正确。
-5. 将 `results/draw0_submission.zip` 发给导师。
+1. Download the code and all data. Install the dependencies.
+2. Read [Metrics](METRICS.md).
+3. Run `.venv\Scripts\python.exe run.py` on Windows, or `.venv/bin/python run.py` on macOS / Linux.
+4. Check the four metric plots, including methods, ε values, and axis labels.
+5. **Send `results/draw0_submission.zip` to Kerwinxxp (the project owner).**
 
-可以修改绘图样式、阅读并改进代码。最终结果须使用约定的指标定义；若希望改变指标设置，先与导师讨论。
+You may improve the plot style or code. Keep the metric definitions fixed; discuss any setting changes with Kerwinxxp first.
 
-## 提交前确认
+## Before sending
 
-- [ ] 200 个不同的图片 ID，原始结果共 2,200 行。
-- [ ] 两种方法均完整：Laplace、指数机制。
-- [ ] 每种方法都包含 ε = 2、4、6、8、10，draw index 均为 0。
-- [ ] 原图与自身比较时，MSE = 0、SSIM = 1。
-- [ ] 整图指标与 mask 区域指标分别保存。
-- [ ] ZIP 包含 CSV/JSONL 原始结果、汇总表、PNG/PDF 图和运行记录。
-- [ ] 提交的是完整运行结果，不是 `check3` 试跑结果。
-- [ ] 保留完整数值精度和实际运行的代码快照。
+- [ ] 200 unique image IDs and 2,200 raw-result rows.
+- [ ] Both methods: Laplace and the exponential mechanism.
+- [ ] ε = 2, 4, 6, 8, 10 for each method; draw index = 0.
+- [ ] Original-image self-checks: MSE = 0 and SSIM = 1.
+- [ ] Whole-image and masked-area metrics saved separately.
+- [ ] ZIP contains raw CSV/JSONL, summaries, PNG/PDF plots, and run records.
+- [ ] Full results, not the `check3` pilot.
+- [ ] Full numeric precision and snapshots of the code actually used.
 
-若检查失败，记录报错和图片 ID，检查数据或代码。不要删掉不符合预期的图片，也不要调整数值来强制产生某种趋势。
+If a check fails, record the error and image ID, then inspect the data or code. Do not drop unexpected results or force a trend.
 
-本次不要求重新加噪、运行攻击模型、计算 mPL、增加种子或撰写分析报告。
+No new noise generation, attacker runs, mPL calculation, extra seeds, or analysis report are required.

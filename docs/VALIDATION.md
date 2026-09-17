@@ -1,22 +1,22 @@
-# 维护者验证记录
+# Validation record
 
-验证环境：Windows、干净的 Python 3.13 CPU 环境，以及 `requirements.txt` 中固定的依赖。
+Environment: Windows, a clean Python 3.13 CPU environment, and the pinned dependencies in `requirements.txt`.
 
-## 整理后的运行入口
+## Current entry point
 
-- 8 项数值与流程测试通过，包含从其他工作目录启动入口、试跑标识和 ZIP 代码快照检查。
-- 新入口已在 3 张真实图片上完成测量、绘图、打包，共输出 33 行结果。
-- 指标计算库与整理前逐字节一致，目录调整没有改动指标公式。
+- 8 numeric and workflow tests passed, covering launch from another directory, pilot labels, and code snapshots in the ZIP.
+- A 3-image run completed measurement, plotting, and packaging: 33 result rows.
+- The metric library is byte-for-byte unchanged from before the folder cleanup.
 
-## 首次发布时的全量验证
+## Initial full validation
 
-- 完整测量 200 张图片，得到 2,200 条不同的记录。
-- 四项指标均与原实验实现一致，绝对差小于 `1e-12`，覆盖两种方法及所有 ε。
-- 逐个核验输入哈希、原始尺寸和 mask 外像素；完成原始结果、汇总、绘图及 ZIP 导出。
-- 从 GitHub 重新克隆后，在干净环境完成了 3 张图片的测量与导出检查。
+- Measured all 200 images: 2,200 unique records.
+- All four metrics matched the original implementation within `1e-12` absolute error, across both methods and every ε.
+- Checked input hashes, native dimensions, and unchanged pixels outside masks. Generated raw results, summaries, plots, and a submission ZIP.
+- A fresh GitHub clone passed a 3-image measurement and export check in a clean environment.
 
-提交 ZIP 会记录完整精度的原始值、输入身份、运行环境，以及测量和绘图实际使用的代码快照。
+Submission ZIPs include full-precision values, input identities, the run environment, and snapshots of the measurement and plotting code actually used.
 
-数据 Release 提供压缩包校验值。上传前，每个文件也已与清单哈希核对。
+The data release includes archive hashes. Each input file was checked against the manifest before upload.
 
-仓库提供输入和代码；学生需要自行生成并提交真实图片的测量结果。
+The repository provides inputs and code. Students generate and submit their own measurement results.
