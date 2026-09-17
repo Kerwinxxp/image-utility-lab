@@ -15,7 +15,7 @@ from matplotlib.ticker import MaxNLocator
 import utility_lib
 from utility_lib import EPSILONS, METRICS, atomic_bytes, atomic_json, digest, sha256, summarize
 
-ROOT = Path(__file__).resolve().parent
+ROOT = Path(__file__).resolve().parents[1]
 
 
 def main(argv=None):

@@ -38,8 +38,8 @@
     "extra draws",
     "noise-limit views"
   ],
-  "access": "Private research/teaching package; original image rights are not transferred by this repository.",
-  "manifest": "manifests/im2gps200_draw0.jsonl",
-  "manifest_sha256": "00e8b7b710c1d069be2d6ba616e7deb5b3e4941e734b569645b60c0f05f4828b",
+  "access": "Public research/teaching repository; original image rights and license conditions remain with their respective owners.",
+  "manifest": "config/im2gps200_draw0.jsonl",
+  "manifest_sha256": "47d1ab1f8e21fb14560525b4cf9c5950fa1f0f7710865eb74cd7f02b0b01777b",
   "original_metadata": "Original file bytes are preserved, including existing embedded metadata. These images are not metadata-sanitized."
 }

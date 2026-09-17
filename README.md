@@ -1,103 +1,114 @@
-# Image utility lab
+# 图片效用实验 · Utility vs. ε
 
-Measure image quality after region-level noise on **200 im2gps images**. Compute per-image MSE and SSIM, draw **utility–epsilon curves**, and return the raw results to your supervisor.
+**任务：在 200 张图片上测量加噪造成的图像变化，绘制 utility–ε 曲线，并把原始测量结果交给导师。**
 
-This repository provides a portable reference implementation and fixed input images. Your task is to run, verify and document the full measurement on your own computer. You may improve the implementation while preserving the metric definitions. Existing real-image utility answers are not included.
+代码和输入数据均可直接下载。普通电脑的 CPU 即可运行，不需要 GPU、模型或 API 密钥。
 
-## Scope
-
-| Item | Setting |
-|---|---|
-| Dataset | 200 fixed im2gps images |
-| Protected region | Union of all saved cue masks in each image |
-| Mechanisms | Laplace; finite-RGB exponential mechanism |
-| Noise parameters | epsilon = 2, 4, 6, 8, 10 |
-| Random repetition | Existing default `draw_index=0` for every noisy view |
-| Measures | Whole-image and protected-region MSE and SSIM |
-| Reference | Exact saved original image |
-| Computation | CPU only; Python 3.11–3.13 |
-| Required output | Per-image measurements, summary table, utility–epsilon curves, run record |
-
-There are **2,200 measured views**: 200 originals, 1,000 Laplace-noisy images and 1,000 exponential-mechanism images. The 200 masks bring the input file count to 2,400. Larger epsilon means weaker noise. `draw 0` identifies saved image files; it does not mean that every historical image used integer RNG seed zero.
-
-## 1. Download the code and input data
-
-Clone this private repository after your supervisor gives your GitHub account access:
-
-```bash
-git clone https://github.com/Kerwinxxp/image-utility-lab.git
-cd image-utility-lab
+```text
+下载原图与加噪图  →  测量 MSE / SSIM  →  绘制曲线  →  提交原始结果
 ```
 
-Alternatively, use **Code → Download ZIP** while signed in. Then download these four files from [the data-v1.0 release](https://github.com/Kerwinxxp/image-utility-lab/releases/tag/data-v1.0):
+## 这次具体测什么？
 
-- `im2gps200_base.zip`
-- `im2gps200_laplace_draw0_part1.zip`
-- `im2gps200_laplace_draw0_part2.zip`
-- `im2gps200_exponential_draw0.zip`
+| 项目 | 固定设置 |
+|---|---|
+| 数据 | im2gps 数据集的 200 张图片 |
+| 加噪范围 | 每张图中全部已选线索区域的并集，用 mask 标记 |
+| 方法 | Laplace、有限 RGB 指数机制 |
+| 噪声参数 | ε = 2、4、6、8、10；数值越大，噪声越弱 |
+| 随机重复 | 只用已保存的默认 draw 0 |
+| 比较方式 | 每张加噪图与它对应的原图比较 |
+| 指标 | MSE：越低越好；SSIM：越高越好。整张图和 mask 区域分别测量 |
 
-Extract all four into the repository root and merge their `data/` folders. Both Laplace files are ordinary independent ZIP archives; no multipart-archive tool is needed. For example, the statue inputs should be at `data/statue/`, next to `manifests/`, not inside a second nested repository directory. The input set is approximately 2.71 GiB before compression. Keep enough disk space for both downloads and extraction.
+输入已经生成好了，直接测量即可。最终有 **2,200 行原始结果**：200 行原图自检，加上两种方法各 1,000 行加噪结果。
 
-Archive checksums are in `SHA256SUMS.txt` on the release. On Windows, inspect a downloaded archive with `Get-FileHash <filename> -Algorithm SHA256`; on macOS/Linux, use `shasum -a 256 <filename>`. The measurement program also checks every input file against its manifest hash.
+## 第 1 步：下载
 
-## 2. Install the CPU environment
+1. 下载并解压 [代码 ZIP](https://github.com/Kerwinxxp/image-utility-lab/archive/refs/heads/main.zip)，或使用 `git clone https://github.com/Kerwinxxp/image-utility-lab.git`。
+2. 打开 [数据下载页](https://github.com/Kerwinxxp/image-utility-lab/releases/tag/data-v1.0)，下载下面四个文件。
 
-Windows PowerShell:
+| 文件 | 内容 |
+|---|---|
+| `im2gps200_base.zip` | 200 张原图 + 200 张 mask |
+| `im2gps200_laplace_draw0_part1.zip` | 500 张 Laplace 加噪图 |
+| `im2gps200_laplace_draw0_part2.zip` | 其余 500 张 Laplace 加噪图 |
+| `im2gps200_exponential_draw0.zip` | 1,000 张指数机制加噪图 |
+
+3. 将四个 ZIP **都解压到代码目录**，合并它们的 `data/` 文件夹。
+
+四个 ZIP 总计约 2.9 GB。两个 Laplace ZIP 都能独立解压。解压完成后，`data/` 应与 `run.py` 在同一层，例如 `data/statue/`。
+
+## 第 2 步：安装
+
+安装 **Python 3.11、3.12 或 3.13**。在代码目录打开终端，执行对应命令：
+
+**Windows PowerShell**
 
 ```powershell
 py -3.13 -m venv .venv
 .venv\Scripts\python.exe -m pip install -r requirements.txt
-.venv\Scripts\python.exe -m unittest -v
 ```
 
-macOS/Linux:
+如果安装的是 Python 3.11 或 3.12，将第一行的 `-3.13` 改为对应版本。
+
+<details>
+<summary>macOS / Linux 安装命令</summary>
 
 ```bash
 python3 -m venv .venv
 .venv/bin/python -m pip install -r requirements.txt
-.venv/bin/python -m unittest -v
 ```
 
-Use Python 3.11, 3.12 or 3.13. The commands below show Windows paths; on macOS/Linux replace `.venv\Scripts\python.exe` with `.venv/bin/python`.
+下文命令中的 `.venv\Scripts\python.exe` 替换为 `.venv/bin/python`。
 
-## 3. Measure all 200 images
+</details>
 
-From the repository root:
+## 第 3 步：运行
 
 ```powershell
-.venv\Scripts\python.exe run_utility.py --manifest manifests/im2gps200_draw0.jsonl --output results/draw0 --workers 2
+.venv\Scripts\python.exe run.py
 ```
 
-The full run covers both mechanisms and all five epsilon values. All source images are already provided; the program measures them without generating new noise. Use `--workers 1` if memory is limited. A short installation check can use `--limit-images 3 --output results/check3`, but the required deliverable is the complete 200-image run.
+这一条命令会依次完成 **200 张图片的测量、绘图和结果打包**。程序会显示当前步骤，并检查输入文件、图片尺寸和 mask 外像素是否一致。
 
-The output includes raw `per_image_results.csv` and `per_image_results.jsonl`, `summary.csv`, and `run_info.json`. Preserve the full-precision raw files. They allow your supervisor to perform their own analyses without repeating your measurement.
-
-## 4. Draw the utility–epsilon curves
+希望先确认环境是否正确，可以先试 3 张：
 
 ```powershell
-.venv\Scripts\python.exe plot_utility.py --results results/draw0/per_image_results.csv --output results/draw0/figures
+.venv\Scripts\python.exe run.py --limit-images 3
 ```
 
-Plot four quantities against epsilon: whole-image SSIM, region SSIM, whole-image MSE and region MSE. Distinguish the two mechanisms. SSIM is higher-is-better; MSE is lower-is-better. The summary weights images equally rather than pooling all pixels across images.
+试跑结果单独保存到 `results/check3/`。确认成功后，再运行不带 `--limit-images` 的完整命令。
 
-## 5. Return the raw results
+## 第 4 步：提交
 
-```powershell
-.venv\Scripts\python.exe package_results.py --results results/draw0
+将 **`results/draw0_submission.zip`** 发给导师。这个 ZIP 包含：
+
+| 交付文件 | 用途 |
+|---|---|
+| `per_image_results.csv` / `.jsonl` | 每张图、每种方法、每档 ε 的原始测量值 |
+| `summary.csv` | 各设置的汇总值 |
+| `figures/` | 四个指标的 utility–ε 曲线，PNG 和 PDF |
+| `run_info.json` 与代码快照 | 记录实际运行环境、数据和代码版本 |
+
+保留原始精度，提交完整 ZIP。导师会根据原始结果进行后续分析。本次任务到 utility 曲线和原始测量结果为止。
+
+## 想看代码，从哪里开始？
+
+```text
+image-utility-lab/
+├── README.md          ← 从这里开始
+├── run.py             ← 唯一运行入口
+├── requirements.txt   ← 安装依赖
+├── src/               ← 测量、绘图、打包的实现
+├── config/            ← 固定的图片清单与指标设置
+├── docs/              ← 指标解释、任务清单和常见问题
+├── tests/             ← 数值与流程检查
+├── data/              ← 下载后解压到这里
+└── results/           ← 运行后自动生成
 ```
 
-Send the generated submission ZIP to your supervisor. It should contain the two raw-result files, summary table, PNG/PDF curves, and run information. Keep the original precision and include any code changes you made. A screenshot alone is not sufficient.
+推荐阅读顺序：`run.py` → [`src/utility_lib.py`](src/utility_lib.py) 中的 `measure_arrays` → [`src/plot_utility.py`](src/plot_utility.py)。先理解怎么算，再调整实现或图的样式。
 
-The requested work ends with the utility curves and raw measurements; the supervisor will perform the further analysis.
+[指标怎么算](docs/METRICS.md) · [分步运行与常见问题](docs/USAGE.md) · [提交检查清单](docs/TASKS.md) · [维护者验证记录](docs/VALIDATION.md)
 
-## Measurement contract
-
-- Use the exact original image specified by the manifest, decoded at its native resolution.
-- Convert RGB to float64 and divide by 255 **before** subtraction. MSE uses squared normalized-channel values.
-- Whole-image MSE averages all RGB channels; region MSE averages channels inside the union mask.
-- SSIM uses an 11×11 Gaussian window, sigma 1.5, `data_range=1`, population covariance, and the average over RGB channels.
-- Region SSIM averages the same local SSIM map at valid mask centers after excluding the outer five image pixels. Its windows may include unchanged context. It is not SSIM on a black-filled background or a resized crop.
-- Original-versus-original must have MSE 0 and SSIM 1. Pixels outside the mask must be unchanged. Per image, `MSE_full = mask_fraction * MSE_region`.
-- Keep negative local/region SSIM values if they occur; do not silently clip metrics or discard difficult images.
-
-See `metric_settings.json`, `data_card.json` and [the task checklist](TASKS.md). All paths in the manifest are relative to this repository. The data retains the exact original bytes and source metadata; image rights remain with the original owners. Access is for this assigned research task, not a new license for redistribution.
+原始图片的权利仍归原权利人；公开仓库不改变图片的许可条件。数据保留原始文件字节及既有元数据，详见 [`config/data_card.json`](config/data_card.json)。

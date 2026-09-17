@@ -11,6 +11,9 @@ import unittest
 import zipfile
 from pathlib import Path
 
+REPO = Path(__file__).resolve().parents[1]
+sys.path.insert(0, str(REPO / 'src'))
+
 import numpy as np
 from PIL import Image
 from skimage.metrics import structural_similarity
@@ -112,7 +115,7 @@ class UtilityTests(unittest.TestCase):
 
     def test_submission_includes_plot_code_edited_after_measurement(self):
         """The submitted plotting source must be the version that made the plot."""
-        repo = Path(__file__).resolve().parent
+        repo = REPO / 'src'
         with tempfile.TemporaryDirectory() as tmp:
             root = Path(tmp)
             output = root / 'results' / 'pilot'
@@ -159,6 +162,58 @@ class UtilityTests(unittest.TestCase):
                 self.assertEqual(hashlib.sha256(archive.read('code_snapshot/plot_utility.py')).hexdigest(), old_hash)
                 library = archive.read('figures/plot_code_snapshot/utility_lib.py')
                 self.assertEqual(hashlib.sha256(library).hexdigest(), sha256(root / 'utility_lib.py'))
+
+    def test_student_entrypoint_runs_and_labels_a_pilot_from_another_directory(self):
+        """One command must measure, plot, and export without using real inputs."""
+        with tempfile.TemporaryDirectory() as tmp:
+            root = Path(tmp) / 'lab'
+            for name in ('run.py', 'requirements.txt', 'src/utility_lib.py', 'src/run_utility.py',
+                         'src/plot_utility.py', 'src/package_results.py', 'tests/test_utility.py'):
+                destination = root / name
+                destination.parent.mkdir(parents=True, exist_ok=True)
+                shutil.copyfile(REPO / name, destination)
+            original = np.full((21, 21, 3), 180, dtype=np.uint8)
+            mask = np.zeros((21, 21), dtype=np.uint8)
+            mask[7:14, 7:14] = 255
+            perturbed = original.copy()
+            perturbed[mask > 0] = 60
+            (root / 'data').mkdir()
+            for name, values in (('original.png', original), ('mask.png', mask), ('view.png', perturbed)):
+                Image.fromarray(values).save(root / 'data' / name)
+            rows = []
+            for image_id in range(200):
+                base = dict(image_id=str(image_id), case=f'case_{image_id:03}', draw_index=0,
+                            width=21, height=21, original_path='data/original.png', mask_path='data/mask.png',
+                            original_sha256=sha256(root / 'data/original.png'),
+                            mask_sha256=sha256(root / 'data/mask.png'))
+                rows.append(dict(base, mechanism='original', epsilon=None, condition='original',
+                                 source_path='data/original.png', source_sha256=base['original_sha256']))
+                for mechanism in ('laplace', 'exponential'):
+                    for epsilon in (2, 4, 6, 8, 10):
+                        rows.append(dict(base, mechanism=mechanism, epsilon=epsilon,
+                                         condition=f'{mechanism}_{epsilon}', source_path='data/view.png',
+                                         source_sha256=sha256(root / 'data/view.png')))
+            (root / 'config').mkdir()
+            (root / 'config/im2gps200_draw0.jsonl').write_text(
+                ''.join(json.dumps(row) + '\n' for row in rows), encoding='utf-8')
+            completed = subprocess.run([sys.executable, str(root / 'run.py'), '--limit-images', '3', '--workers', '1'],
+                                       cwd=tmp, capture_output=True, text=True)
+            self.assertEqual(completed.returncode, 0, completed.stdout + completed.stderr)
+            self.assertIn('PILOT CHECK', completed.stdout)
+            output = root / 'results/check3'
+            self.assertFalse((root / 'results/draw0').exists())
+            info = json.loads((output / 'run_info.json').read_text(encoding='utf-8'))
+            self.assertEqual((info['scope'], info['n_images'], info['n_rows']), ('pilot', 3, 33))
+            self.assertIn('run.py', info['code_sha256'])
+            self.assertIn('src/run_utility.py', info['code_sha256'])
+            with zipfile.ZipFile(root / 'results/check3_submission.zip') as archive:
+                inventory = json.loads(archive.read('submission_manifest.json'))
+                self.assertEqual(inventory['scope'], 'pilot')
+                for name, expected in inventory['files_sha256'].items():
+                    self.assertEqual(hashlib.sha256(archive.read(name)).hexdigest(), expected)
+                self.assertIn('code_snapshot/run.py', archive.namelist())
+                self.assertIn('code_snapshot/src/run_utility.py', archive.namelist())
+                self.assertFalse(any(name.startswith(('data/', 'cache/')) for name in archive.namelist()))
 
 
 if __name__ == '__main__':

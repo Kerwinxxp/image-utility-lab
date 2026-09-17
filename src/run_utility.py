@@ -25,7 +25,7 @@ from utility_lib import (METRICS, SETTINGS, atomic_bytes, atomic_json, canonical
                          checked_image, digest, measure_arrays, resolve_input,
                          sha256, summarize, validate_manifest_rows)
 
-ROOT = Path(__file__).resolve().parent
+ROOT = Path(__file__).resolve().parents[1]
 
 
 def utc_now():
@@ -91,7 +91,7 @@ def git_identity():
 
 def main(argv=None):
     parser = argparse.ArgumentParser(description=__doc__)
-    parser.add_argument('--manifest', default='manifests/im2gps200_draw0.jsonl')
+    parser.add_argument('--manifest', default='config/im2gps200_draw0.jsonl')
     parser.add_argument('--output', default='results/draw0')
     parser.add_argument('--limit-images', type=int, help='Deterministic pilot only; default is all 200')
     parser.add_argument('--workers', type=int, default=2, choices=range(1, 5))
@@ -116,11 +116,12 @@ def main(argv=None):
     output.mkdir(parents=True, exist_ok=True)
     versions = dict(python=platform.python_version(), numpy=np.__version__, scipy=scipy.__version__,
                     Pillow=PIL.__version__, scikit_image=skimage.__version__)
-    code_files = ['utility_lib.py', 'run_utility.py', 'plot_utility.py', 'package_results.py',
-                  'requirements.txt', 'test_utility.py']
+    code_files = ['run.py', 'src/utility_lib.py', 'src/run_utility.py',
+                  'src/plot_utility.py', 'src/package_results.py',
+                  'requirements.txt', 'tests/test_utility.py']
     code_hashes = {name: sha256(ROOT / name) for name in code_files}
     computation = digest(canonical(dict(settings=SETTINGS, versions=versions,
-                                       code={k: code_hashes[k] for k in ['utility_lib.py', 'run_utility.py']})))
+                                       code={k: code_hashes[k] for k in ['src/utility_lib.py', 'src/run_utility.py']})))
     info = dict(status='running', dataset='im2gps200', default_draw_index=0,
                 scope='full_200' if len(image_ids) == 200 else 'pilot',
                 n_images=len(image_ids), expected_rows=11 * len(image_ids),

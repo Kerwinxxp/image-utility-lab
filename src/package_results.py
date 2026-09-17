@@ -9,7 +9,7 @@ import zipfile
 
 from utility_lib import canonical, sha256
 
-ROOT = Path(__file__).resolve().parent
+ROOT = Path(__file__).resolve().parents[1]
 
 
 def main(argv=None):
