@@ -1,0 +1,45 @@
+{
+  "dataset": "im2gps3k effective 200-image cohort",
+  "images": 200,
+  "protected_mask": "one union mask of the retained cue regions per image",
+  "masks": 200,
+  "mechanisms": [
+    "laplace",
+    "exponential"
+  ],
+  "epsilons": [
+    2,
+    4,
+    6,
+    8,
+    10
+  ],
+  "default_draw_index": 0,
+  "original_views": 200,
+  "laplace_views": 1000,
+  "exponential_views": 1000,
+  "manifest_rows": 2200,
+  "data_files": 2400,
+  "original_formats": {
+    ".png": 50,
+    ".jpg": 150
+  },
+  "noise_image_format": "PNG",
+  "references_preserved_byte_for_byte": true,
+  "native_resolution": true,
+  "task": "Measure whole-image and protected-region MSE and SSIM; draw utility versus epsilon curves; return per-image raw results.",
+  "draw_policy": "Use the supplied saved draw 0 for both mechanisms. It is the existing first draw, not a request to regenerate all images from integer seed 0. Draws 1 and 2 are held in reserve and not included.",
+  "mechanism_note": "epsilon is the saved mechanism parameter; larger values mean weaker perturbation. The exponential mechanism uses the existing finite RGB candidate kernel, not an SSIM objective.",
+  "reference_note": "Every utility metric compares the saved perturbed view against the matching original; original rows provide the identity check.",
+  "excluded": [
+    "utility answers",
+    "mPL and attacker outputs",
+    "separate location-label and coordinate tables",
+    "extra draws",
+    "noise-limit views"
+  ],
+  "access": "Private research/teaching package; original image rights are not transferred by this repository.",
+  "manifest": "manifests/im2gps200_draw0.jsonl",
+  "manifest_sha256": "00e8b7b710c1d069be2d6ba616e7deb5b3e4941e734b569645b60c0f05f4828b",
+  "original_metadata": "Original file bytes are preserved, including existing embedded metadata. These images are not metadata-sanitized."
+}

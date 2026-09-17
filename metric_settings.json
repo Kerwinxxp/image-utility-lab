@@ -1,0 +1,30 @@
+{
+  "rgb_range": [
+    0,
+    1
+  ],
+  "dtype": "float64",
+  "win_size": 11,
+  "gaussian_weights": true,
+  "sigma": 1.5,
+  "use_sample_covariance": false,
+  "data_range": 1.0,
+  "channel_axis": -1,
+  "channel_average": "arithmetic RGB",
+  "spatial_border_excluded": 5,
+  "mask_ssim": "same SSIM map, valid-window centers within mask",
+  "mse_full": "mean squared difference over all pixels and RGB channels",
+  "mse_mask": "mean squared difference over protected pixels and RGB channels",
+  "mask_threshold": "decode grayscale, mask > 0; supplied masks are 0 or 255",
+  "resize": false,
+  "attacker_transport": false,
+  "default_draw_index": 0,
+  "finite_epsilons": [
+    2,
+    4,
+    6,
+    8,
+    10
+  ],
+  "original_is_reference": true
+}
