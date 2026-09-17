@@ -29,13 +29,14 @@ git clone https://github.com/Kerwinxxp/image-utility-lab.git
 cd image-utility-lab
 ```
 
-Alternatively, use **Code → Download ZIP** while signed in. Then download these three files from [the data-v1.0 release](https://github.com/Kerwinxxp/image-utility-lab/releases/tag/data-v1.0):
+Alternatively, use **Code → Download ZIP** while signed in. Then download these four files from [the data-v1.0 release](https://github.com/Kerwinxxp/image-utility-lab/releases/tag/data-v1.0):
 
 - `im2gps200_base.zip`
-- `im2gps200_laplace_draw0.zip`
+- `im2gps200_laplace_draw0_part1.zip`
+- `im2gps200_laplace_draw0_part2.zip`
 - `im2gps200_exponential_draw0.zip`
 
-Extract all three into the repository root and merge their `data/` folders. For example, the statue inputs should be at `data/statue/`, next to `manifests/`, not inside a second nested repository directory. The input set is approximately 2.71 GiB before compression. Keep enough disk space for both downloads and extraction.
+Extract all four into the repository root and merge their `data/` folders. Both Laplace files are ordinary independent ZIP archives; no multipart-archive tool is needed. For example, the statue inputs should be at `data/statue/`, next to `manifests/`, not inside a second nested repository directory. The input set is approximately 2.71 GiB before compression. Keep enough disk space for both downloads and extraction.
 
 Archive checksums are in `SHA256SUMS.txt` on the release. On Windows, inspect a downloaded archive with `Get-FileHash <filename> -Algorithm SHA256`; on macOS/Linux, use `shasum -a 256 <filename>`. The measurement program also checks every input file against its manifest hash.
 
